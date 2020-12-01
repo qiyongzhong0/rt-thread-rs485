@@ -37,9 +37,9 @@ rs485_inst_t * rs485_create(char *serial, int baudrate, int parity, int pin, int
 int rs485_destory(rs485_inst_t * hinst);
 
 /* 
- * @brief   config serial params 
+ * @brief   config rs485 params 
  * @param   hinst       - instance handle
- * @param   baudrate    - baudrate of serial
+ * @param   baudrate    - baudrate of communication
  * @param   databits    - data bits, 5~8
  * @param   parity      - parity bit, 0~2, 0 - none, 1 - odd, 2 - even
  * @param   stopbits    - stop bits, 0~1, 0 - 1 stop bit, 1 - 2 stop bits
@@ -90,7 +90,7 @@ int rs485_recv(rs485_inst_t * hinst, void *buf, int size);
  * @brief   send datas to rs485
  * @param   hinst       - instance handle
  * @param   buf         - buffer addr
- * @param   size        - maximum length of received datas
+ * @param   size        - length of send datas
  * @retval  >=0 - length of sent datas, <0 - error
  */
 int rs485_send(rs485_inst_t * hinst, void *buf, int size);

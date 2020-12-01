@@ -2,144 +2,123 @@
 
 ## 1.简介
 
-**rs485** 旨在提供一个快捷易用的led驱动包。
+**rs485** rs485接口通信驱动包。
 
 ### 1.1目录结构
 
-`Quick Led` 软件包目录结构如下所示：
+`rs485` 软件包目录结构如下所示：
 
 ``` 
-qled
-├───inc   						// 头文件目录
-│   |   qled.h            		// API 接口头文件
-│   └───qled_sample.h     		// 示例头文件
-├───src                   		// 源码目录
-│   |   qled.c            		// 主模块
-│   └───qled_samplec  			// 示例模块
-│	license  					// 软件包许可证
-│	readme.md					// 软件包使用说明
-└───SConscript					// RT-Thread 默认的构建脚本
+rs485
+├───inc                         // 头文件目录
+│   └───rs485.h                 // API 接口头文件
+├───src                         // 源码目录
+│   |   rs485.c                 // 主模块
+│   └───rs485_test.c			// 测试模块
+│   license                     // 软件包许可证
+│   readme.md                   // 软件包使用说明
+└───SConscript                  // RT-Thread 默认的构建脚本
 ```
 
 ### 1.2许可证
 
-Quick Led package 遵循 LGPLv2.1 许可，详见 `LICENSE` 文件。
+rs485 package 遵循 LGPLv2.1 许可，详见 `LICENSE` 文件。
 
 ### 1.3依赖
 
 - RT_Thread 4.0
+- serial
+- pin
 
 ## 2.使用
 
 ### 2.1接口函数说明
 
-#### int qled_add(int pin, int level);
-- 功能 ：加一个led到驱动
-- 参数 ：pin--led使用的引脚号
-- 参数 ：level--点亮led的电平
+#### rs485_inst_t * rs485_create(char *serial, int baudrate, int parity, int pin, int level);
+- 功能 ：动态创建rs485实例
+- 参数 ：serial--串口设备名称
+- 参数 ：baudrate--串口波特率
+- 参数 ：parity--串口检验位
+- 参数 ：pin--rs485收发模式控制引脚
+- 参数 ：level--发送模式控制电平
+- 返回 ：成功返回实例指针，失败返回NULL
+
+#### int rs485_destory(rs485_inst_t * hinst);
+- 功能 ：销毁rs485实例
+- 参数 ：hinst--rs485实例指针
+- 返回 ：0--成功,其它--失败
+
+#### int rs485_config(rs485_inst_t * hinst, int baudrate, int databits, int parity, int stopbits);
+- 功能 ：配置rs485通信参数
+- 参数 ：hinst--rs485实例指针
+- 参数 ：baudrate--通信波特率
+- 参数 ：databits--数据位数, 5~8
+- 参数 ：parity--检验位, 0~2, 0--无校验, 1--奇校验, 2--偶校验
+- 参数 ：stopbits--停止位, 0~1, 0--1个停止位, 1--2个停止位
 - 返回 ：0--成功，其它--错误
 
-#### void qled_remove(int pin);
-- 功能 ：从驱动移除led
-- 参数 ：pin--led使用的引脚号
-- 返回 ：无
-
-#### int qled_set_off(int pin);
-- 功能 ：设置led到常灭状态
-- 参数 ：pin--led使用的引脚号
+#### int rs485_set_recv_tmo(rs485_inst_t * hinst, int tmo_ms);
+- 功能 ：设置rs485接收超时时间
+- 参数 ：hinst--rs485实例指针
+- 参数 ：tmo_ms--超时时间,单位ms
 - 返回 ：0--成功，其它--错误
 
-#### int qled_set_on(int pin);
-- 功能 ：设置led到常亮状态
-- 参数 ：pin--led使用的引脚号
+#### int rs485_set_byte_tmo(rs485_inst_t * hinst, int tmo_ms);
+- 功能 ：设置rs485接收字节间隔超时时间
+- 参数 ：hinst--rs485实例指针
+- 参数 ：tmo_ms--超时时间,单位ms
 - 返回 ：0--成功，其它--错误
 
-#### int qled_set_blink(int pin, int ton_ms, int toff_ms);
-- 功能 ：设置led到周期性闪烁状态
-- 参数 ：pin--led使用的引脚号
-- 参数 ：ton_ms--led点亮时长
-- 参数 ：toff_ms--led熄灭时长
+#### int rs485_connect(rs485_inst_t * hinst);
+- 功能 ：打开rs485连接
+- 参数 ：hinst--rs485实例指针
 - 返回 ：0--成功，其它--错误
 
-#### int qled_set_special(int pin, const u16 *datas, int data_total, void (*over_cb)(void));
-- 功能 ：设置led执行特殊序列闪烁
-- 参数 ：pin--led使用的引脚号
-- 参数 ：datas--特殊序列数据
-- 参数 ：data_total--特殊序列的数据总数
-- 参数 ：over_cb--特殊序列执行结束时的回调函数
+#### int rs485_disconn(rs485_inst_t * hinst);
+- 功能 ：关闭rs485连接
+- 参数 ：hinst--rs485实例指针
 - 返回 ：0--成功，其它--错误
 
-### 2.2使用示例
+#### int rs485_recv(rs485_inst_t * hinst, void *buf, int size);
+- 功能 ：从rs485接收数据
+- 参数 ：hinst--rs485实例指针
+- 参数 ：buf--接收数据缓冲区指针
+- 参数 ：size--缓冲区尺寸
+- 返回 ：>=0--接收到的数据长度，<0--错误
 
-#### 示例1. 以指定频率和占空比控制led闪烁
+#### int rs485_send(rs485_inst_t * hinst, void *buf, int size);
+- 功能 ：从rs485接收数据
+- 参数 ：hinst--rs485实例指针
+- 参数 ：buf--发送数据缓冲区指针
+- 参数 ：size--发送数据长度
+- 返回 ：>=0--发送的数据长度，<0--错误
 
-```
-qled_add(24, 1);//加24号引脚led到驱动，高电平点亮
+#### int rs485_break_recv(rs485_inst_t * hinst);
+- 功能 ：中断rs485接收等待
+- 参数 ：hinst--rs485实例指针
+- 返回 ：0--成功，其它--错误
 
-qled_set_blink(24, 50, 50);//设置led以10Hz闪烁，亮50ms，灭50ms
-rt_thread_mdelay(5000);//时间5s
-
-qled_set_blink(24, 50, 450);//设置led以2Hz闪烁，亮50ms，灭450ms
-rt_thread_mdelay(10000);//时间10s
-
-qled_remove(24);//不再需要led了，从驱动中移除
-```
-
-#### 示例2. 发送SOS信号
-
-```
-#define QLED_SOS_PIN GET_PIN(B, 9) //25号
-
-static int sos_send_times = 0;//发送sos信号次数计数
-static const u16 sos_datas[] = //定义sos信号时间数据
-{
-    200, 200, 200, 200, 200, 200,       //short 3 times
-    600, 600, 600, 600, 600, 600,       //long 3 times
-    200, 200, 200, 200, 200, 200 + 2000 //short 3 times and 2000ms interval
-};
-
-static void qled_sos_cb(void)//定义特殊序列执行结束回调函数
-{
-    sos_send_times--;
-    if (sos_send_times > 0)//执行次数未到
-    {
-        qled_set_special(QLED_SOS_PIN, sos_datas, sizeof(sos_datas)/sizeof(u16), qled_sos_cb);//再次执行
-    }
-    else//执行完成
-    {
-        qled_remove(QLED_SOS_PIN);//不需要了，从驱动移除
-    }
-}
-
-void qled_send_sos(void)//执行发送sos信号，发送5次SOS信号, 总用时40s
-{
-    sos_send_times = 5;//设置发送次数为5
-    qled_add(QLED_SOS_PIN, 1);//加引脚led到驱动
-    qled_set_special(QLED_SOS_PIN, sos_datas, sizeof(sos_datas)/sizeof(u16), qled_sos_cb);//启动执行特殊序列
-}
-```
-
-### 2.3获取组件
+### 2.2获取组件
 
 - **方式1：**
-通过 *Env配置工具* 或 *RT-Thread studio* 开启软件包，根据需要配置各项参数；配置路径为 *RT-Thread online packages -> peripherals packages -> quick led* 
+通过 *Env配置工具* 或 *RT-Thread studio* 开启软件包，根据需要配置各项参数；配置路径为 *RT-Thread online packages -> peripherals packages -> rs485* 
 
 
-### 2.4配置参数说明
+### 2.3配置参数说明
 
 | 参数宏 | 说明 |
 | ---- | ---- |
-| QLED_TOTAL 				| 支持的led总数
-| QLED_TIME_UNIT_MS 		| led闪烁的时间单位
-| QLED_THREAD_NAME 			| led驱动线程名称
-| QLED_THREAD_STACK_SIZE 	| led驱动线程堆栈尺寸
-| QLED_THREAD_PRIO 			| led驱动线程优先级
-| QLED_USING_SAMPLE 		| 使用示例
-| QLED_RUN_PIN 				| 示例运行灯引脚 
-| QLED_SOS_PIN 				| 示例SOS信号灯引脚
+| RS485_USING_TEST		| 使用测试功能
+| RS485_TEST_SERIAL		| 串口设备名称
+| RS485_TEST_BAUDRATE	| 串口波特率
+| RS485_TEST_PARITY 	| 串口校验位
+| RS485_TEST_PIN 		| 收发模式控制引脚
+| RS485_TEST_LEVEL 		| 发送模式控制电平
+| RS485_TEST_BUF_SIZE	| 缓冲区尺寸
+| RS485_TEST_RECV_TMO 	| 接收超时时间
 
 ## 3. 联系方式
 
 * 维护：qiyongzhong
-* 主页：https://gitee.com/qiyongzhong0/rt-thread-qled
+* 主页：https://github.com/qiyongzhong0/rt-thread-rs485
 * 邮箱：917768104@qq.com

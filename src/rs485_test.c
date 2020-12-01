@@ -13,10 +13,10 @@
 #ifdef RS485_USING_TEST
 
 #ifndef RS485_TEST_SERIAL
-#define RS485_TEST_SERIAL       "uart3"         //default test serial
+#define RS485_TEST_SERIAL       "uart1"         //default test serial
 #endif
 
-#ifndef RS485_TEST_PARITY
+#ifndef RS485_TEST_BAUDRATE
 #define RS485_TEST_BAUDRATE     9600            //defalut test baudrate
 #endif
 
