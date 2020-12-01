@@ -8,12 +8,11 @@
 
 #include <rtthread.h>
 #include <rtdevice.h>
-#include <board.h>
 #include <rs485.h>
 
-//#define DRV_DEBUG
-#define LOG_TAG             "drv.rs485"
-#include <drv_log.h>
+#define DBG_TAG "drv.rs485"
+#define DBG_LVL DBG_INFO
+#include <rtdbg.h>
 
 #define RS485_EVT_RX_IND    (1<<0)
 #define RS485_EVT_RX_BREAK  (1<<1)
@@ -72,7 +71,6 @@ static void rs485_mode_set(rs485_inst_t * hinst, int mode)//mode : 0--receive mo
 
 rs485_inst_t * rs485_create(char *name, int baudrate, int parity, int pin, int level)
 {
-    struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
     rs485_inst_t *hinst;
     rt_device_t dev;
     
@@ -113,9 +111,7 @@ rs485_inst_t * rs485_create(char *name, int baudrate, int parity, int pin, int l
         return(NULL);
     }
 
-    config.baud_rate = baudrate;
-    config.parity = parity;
-    rt_device_control(dev, RT_DEVICE_CTRL_CONFIG, &config);
+    rs485_config(dev, baudrate, 8, parity, 1);
 
     hinst->serial = dev;
     hinst->status = 0;
@@ -155,6 +151,25 @@ int rs485_destory(rs485_inst_t * hinst)
     
     LOG_D("rs485 destory success.");
     
+    return(RT_EOK);
+}
+
+int rs485_config(rs485_inst_t * hinst, int baudrate, int databits, int parity, int stopbits)
+{
+    struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
+
+    if (hinst == NULL)
+    {
+        LOG_E("rs485 config fail. hinst is NULL.");
+        return(-RT_ERROR);
+    }
+
+    config.baud_rate = baudrate;
+    config.data_bits = databits;
+    config.parity = parity;
+    config.stop_bits = stopbits;
+    rt_device_control(hinst->serial, RT_DEVICE_CTRL_CONFIG, &config);
+
     return(RT_EOK);
 }
 
@@ -284,7 +299,7 @@ int rs485_disconn(rs485_inst_t * hinst)
 int rs485_recv(rs485_inst_t * hinst, void *buf, int size)
 {
     int recv_len = 0;
-    u32 recved = 0;
+    rt_uint32_t recved = 0;
     
     if (hinst == NULL || buf == NULL || size == 0)
     {

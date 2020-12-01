@@ -37,13 +37,24 @@ rs485_inst_t * rs485_create(char *serial, int baudrate, int parity, int pin, int
 int rs485_destory(rs485_inst_t * hinst);
 
 /* 
+ * @brief   config serial params 
+ * @param   hinst       - instance handle
+ * @param   baudrate    - baudrate of serial
+ * @param   databits    - data bits, 5~8
+ * @param   parity      - parity bit, 0~2, 0 - none, 1 - odd, 2 - even
+ * @param   stopbits    - stop bits, 0~1, 0 - 1 stop bit, 1 - 2 stop bits
+ * @retval  0 - success, other - error
+ */
+int rs485_config(rs485_inst_t * hinst, int baudrate, int databits, int parity, int stopbits);
+
+/* 
  * @brief   set wait datas timeout for receiving 
  * @param   hinst       - instance handle
  * @param   tmo_ms      - receive wait timeout, 0--no wait, <0--wait forever, >0--wait timeout, default = 0
  * @retval  0 - success, other - error
  */
 int rs485_set_recv_tmo(rs485_inst_t * hinst, int tmo_ms);
-
+ 
 /* 
  * @brief   set byte interval timeout for receiving
  * @param   hinst       - instance handle

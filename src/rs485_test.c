@@ -8,7 +8,6 @@
 
 #include <rtthread.h>
 #include <rtdevice.h>
-#include <board.h>
 #include <rs485.h>
 
 #ifdef RS485_USING_TEST
