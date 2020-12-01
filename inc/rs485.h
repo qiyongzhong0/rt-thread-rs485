@@ -27,7 +27,7 @@ typedef struct rs485_inst rs485_inst_t;
  * @param   level       - send mode level
  * @retval  instance handle
  */
-rs485_inst_t * rs485_create(char *serial, int baudrate, int parity, int pin, int level);
+rs485_inst_t * rs485_create(const char *serial, int baudrate, int parity, int pin, int level);
 
 /* 
  * @brief   destory rs485 instance created dynamically

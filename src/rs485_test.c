@@ -9,6 +9,8 @@
 #include <rtthread.h>
 #include <rtdevice.h>
 #include <rs485.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef RS485_USING_TEST
 
@@ -40,23 +42,36 @@
 #define RS485_TEST_RECV_TMO     30000           //default test recicve timeout
 #endif
 
+static rs485_inst_t * test_hinst = NULL;
+static char test_buf[RS485_TEST_BUF_SIZE];
+
+static const char *cmd_info[] =
+{
+    "Usage: \n",
+    "rs485 create [serial] [baudrate] [parity] [pin] [level] - create rs485 instance.\n",
+    "rs485 destory                                           - destory rs485 instance.\n",
+    "rs485 set_recv_tmo [tmo_ms]                             - set recieve timeout.\n",
+    "rs485 set_byte_tmo [tmo_ms]                             - set byte timeout.\n",
+    "rs485 connect                                           - open rs485 connect.\n",
+    "rs485 disconn                                           - close rs485 connect.\n",
+    "rs485 recv [size]                                       - receive from rs485.\n",
+    "rs485 send [size]                                       - send to rs485.\n",
+    "\n"
+};
+
+static void show_cmd_info(void)
+{
+    for(int i=0; i<sizeof(cmd_info)/sizeof(char*); i++)
+    {
+        rt_kprintf(cmd_info[i]);
+    }
+}
+
 static void rs485_test(int argc, char **argv)
 {
-    static rs485_inst_t * test_hinst = NULL;
-    static char test_buf[RS485_TEST_BUF_SIZE];
-    
     if (argc < 2)
     {
-        rt_kprintf("Usage: \n");
-        rt_kprintf("rs485 create [serial] [baudrate] [parity] [pin] [level] - create rs485 instance.\n");
-        rt_kprintf("rs485 destory                                           - destory rs485 instance.\n");
-        rt_kprintf("rs485 set_recv_tmo [tmo_ms]                             - set recieve timeout.\n");
-        rt_kprintf("rs485 set_byte_tmo [tmo_ms]                             - set byte timeout.\n");
-        rt_kprintf("rs485 connect                                           - open rs485 connect.\n");
-        rt_kprintf("rs485 disconn                                           - close rs485 connect.\n");
-        rt_kprintf("rs485 recv [size]                                       - receive from rs485.\n");
-        rt_kprintf("rs485 send [size]                                       - send to rs485.\n");
-        rt_kprintf("\n");
+        show_cmd_info();
         return ;
     }
     
@@ -197,7 +212,6 @@ static void rs485_test(int argc, char **argv)
     if (strcmp(argv[1], "send") == 0)
     {
         int size = RS485_TEST_BUF_SIZE;
-        int len = 0;
         
         if (test_hinst == NULL)
         {
@@ -208,8 +222,8 @@ static void rs485_test(int argc, char **argv)
         {
             size = atoi(argv[2]);
         }
-        len = rs485_send(test_hinst, test_buf, size);
-        rt_kprintf("rs485 transmit completed. length : %d .\n", len);
+        size = rs485_send(test_hinst, test_buf, size);
+        rt_kprintf("rs485 transmit completed. length : %d .\n", size);
         return;
     }
 
@@ -217,4 +231,3 @@ static void rs485_test(int argc, char **argv)
 }
 MSH_CMD_EXPORT_ALIAS(rs485_test, rs485, test rs485 module functions);
 #endif
-

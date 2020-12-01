@@ -29,13 +29,14 @@ struct rs485_inst
     rt_int32_t byte_tmo;    //receive byte interval timeout, ms
 };
 
-static void rs485_recv_ind_hook(rt_device_t dev, int size)
+static rt_err_t rs485_recv_ind_hook(rt_device_t dev, rt_size_t size)
 {
     rs485_inst_t *hinst = (rs485_inst_t *)(dev->user_data);
     if (hinst->evt)
     {
         rt_event_send(hinst->evt, RS485_EVT_RX_IND);
     }
+    return(RT_EOK);
 }
 
 static int rs485_cal_byte_tmo(int baudrate)
@@ -69,49 +70,49 @@ static void rs485_mode_set(rs485_inst_t * hinst, int mode)//mode : 0--receive mo
     }
 }
 
-rs485_inst_t * rs485_create(char *name, int baudrate, int parity, int pin, int level)
+rs485_inst_t * rs485_create(const char *name, int baudrate, int parity, int pin, int level)
 {
     rs485_inst_t *hinst;
     rt_device_t dev;
     
     dev = rt_device_find(name);
-    if (dev == NULL)
+    if (dev == RT_NULL)
     {
         LOG_E("rs485 instance initiliaze error, the serial device no found.");
-        return(-RT_ERROR);
+        return(RT_NULL);
     }
     
     if (dev->type != RT_Device_Class_Char)
     {
         LOG_E("rs485 instance initiliaze error, the serial device type is not char.");
-        return(-RT_ERROR);
+        return(RT_NULL);
     }
     
     hinst = rt_malloc(sizeof(struct rs485_inst));
-    if (hinst == NULL)
+    if (hinst == RT_NULL)
     {
         LOG_E("rs485 create fail. no memory for rs485 create instance.");
-        return(NULL);
+        return(RT_NULL);
     }
 
     hinst->lock = rt_mutex_create(name, RT_IPC_FLAG_FIFO);
-    if (hinst->lock == NULL)
+    if (hinst->lock == RT_NULL)
     {
         rt_free(hinst);
         LOG_E("rs485 create fail. no memory for rs485 create mutex.");
-        return(NULL);
+        return(RT_NULL);
     }
 
     hinst->evt = rt_event_create(name, RT_IPC_FLAG_FIFO);
-    if (hinst->evt == NULL)
+    if (hinst->evt == RT_NULL)
     {
         rt_mutex_delete(hinst->lock);
         rt_free(hinst);
         LOG_E("rs485 create fail. no memory for rs485 create event.");
-        return(NULL);
+        return(RT_NULL);
     }
 
-    rs485_config(dev, baudrate, 8, parity, 1);
+    rs485_config(hinst, baudrate, 8, parity, 1);
 
     hinst->serial = dev;
     hinst->status = 0;
