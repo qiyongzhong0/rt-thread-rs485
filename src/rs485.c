@@ -4,6 +4,7 @@
  * Change Logs:
  * Date           Author            Notes
  * 2020-06-08     qiyongzhong       first version
+ * 2020-12-14     qiyongzhong       fix bug and release v1.0
  */
 
 #include <rtthread.h>
@@ -112,8 +113,6 @@ rs485_inst_t * rs485_create(const char *name, int baudrate, int parity, int pin,
         return(RT_NULL);
     }
 
-    rs485_config(hinst, baudrate, 8, parity, 1);
-
     hinst->serial = dev;
     hinst->status = 0;
     hinst->pin = pin;
@@ -121,6 +120,8 @@ rs485_inst_t * rs485_create(const char *name, int baudrate, int parity, int pin,
     hinst->timeout = 0;
     hinst->byte_tmo = rs485_cal_byte_tmo(baudrate);
     
+    rs485_config(hinst, baudrate, 8, parity, 1);
+
     LOG_D("rs485 create success.");
 
     return(hinst);
@@ -320,20 +321,6 @@ int rs485_recv(rs485_inst_t * hinst, void *buf, int size)
         LOG_E("rs485 receive fail. it is not connected.");
         return(-RT_ERROR);
     }
-
-    rt_event_control(hinst->evt, RT_IPC_CMD_RESET, NULL);
-    if (rt_event_recv(hinst->evt, (RS485_EVT_RX_IND + RS485_EVT_RX_BREAK), 
-        (RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR), hinst->timeout, &recved) != RT_EOK)
-    {
-        rt_mutex_release(hinst->lock);
-        return(0);
-    }
-    if ((recved & RS485_EVT_RX_BREAK) != 0)
-    {
-        rt_mutex_release(hinst->lock);
-        rt_thread_mdelay(1);
-        return(0);
-    }
     
     while(size)
     {
@@ -345,9 +332,26 @@ int rs485_recv(rs485_inst_t * hinst, void *buf, int size)
             continue;
         }
         rt_event_control(hinst->evt, RT_IPC_CMD_RESET, NULL);
-        if (rt_event_recv(hinst->evt, RS485_EVT_RX_IND, RT_EVENT_FLAG_OR|RT_EVENT_FLAG_CLEAR, hinst->byte_tmo, &recved) != RT_EOK)
+        if (recv_len)
         {
-            break;
+            if (rt_event_recv(hinst->evt, RS485_EVT_RX_IND, RT_EVENT_FLAG_OR|RT_EVENT_FLAG_CLEAR, hinst->byte_tmo, &recved) != RT_EOK)
+            {
+                break;
+            }
+        }
+        else
+        {
+            if (rt_event_recv(hinst->evt, (RS485_EVT_RX_IND | RS485_EVT_RX_BREAK), 
+                    (RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR), hinst->timeout, &recved) != RT_EOK)
+            {
+                break;
+            }
+            if ((recved & RS485_EVT_RX_BREAK) != 0)
+            {
+                rt_mutex_release(hinst->lock);
+                rt_thread_delay(1);
+                return(0);
+            }
         }
     }
     
