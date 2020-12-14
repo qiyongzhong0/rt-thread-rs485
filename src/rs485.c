@@ -324,7 +324,7 @@ int rs485_recv(rs485_inst_t * hinst, void *buf, int size)
     
     while(size)
     {
-        int len = rt_device_read(hinst->serial, 0, buf + recv_len, size);
+        int len = rt_device_read(hinst->serial, 0, (char *)buf + recv_len, size);
         if (len)
         {
             recv_len += len;
