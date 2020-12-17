@@ -14,7 +14,9 @@ rs485
 │   └───rs485.h                 // API 接口头文件
 ├───src                         // 源码目录
 │   |   rs485.c                 // 主模块
-│   └───rs485_test.c			// 测试模块
+│   |   rs485_test.c            // 测试模块
+│   |   rs485_sample_slave.c    // 从模式示例
+│   └───rs485_sample_master.c   // 主模式示例
 │   license                     // 软件包许可证
 │   readme.md                   // 软件包使用说明
 └───SConscript                  // RT-Thread 默认的构建脚本

@@ -4,6 +4,7 @@
  * Change Logs:
  * Date           Author            Notes
  * 2020-06-08     qiyongzhong       first version
+ * 2020-12-17     qiyongzhong       add config function
  */
 
 #include <rtthread.h>
@@ -56,6 +57,7 @@ static const char *cmd_info[] =
     "rs485 disconn                                           - close rs485 connect.\n",
     "rs485 recv [size]                                       - receive from rs485.\n",
     "rs485 send [size]                                       - send to rs485.\n",
+    "rs485 cfg [baudrate] [databits] [parity] [stopbits]     - config rs485.\n",
     "\n"
 };
 
@@ -224,6 +226,38 @@ static void rs485_test(int argc, char **argv)
         }
         size = rs485_send(test_hinst, test_buf, size);
         rt_kprintf("rs485 transmit completed. length : %d .\n", size);
+        return;
+    }
+    
+    if (strcmp(argv[1], "cfg") == 0)
+    {
+        int baudrate = RS485_TEST_BAUDRATE;
+        int databits = 8;
+        int parity = RS485_TEST_PARITY;
+        int stopbits = 1;
+        
+        if (test_hinst == NULL)
+        {
+            rt_kprintf("the test instance is NULL, please create first.\n");
+            return;
+        }
+        if (argc >= 3)
+        {
+            baudrate = atoi(argv[2]);
+        }
+        if ( argc >= 4)
+        {
+            databits = atoi(argv[3]);
+        }
+        if (argc >= 5)
+        {
+            parity = atoi(argv[4]);
+        }
+        if (argc >= 6)
+        {
+            stopbits = atoi(argv[5]);
+        }
+        rs485_config(test_hinst, baudrate, databits, parity, stopbits);
         return;
     }
 

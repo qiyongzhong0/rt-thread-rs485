@@ -4,6 +4,7 @@
  * Change Logs:
  * Date           Author            Notes
  * 2020-06-08     qiyongzhong       first version
+ * 2020-12-17     qiyongzhong       add sample
  */
 
 #ifndef __DRV_RS485_H__
@@ -12,6 +13,8 @@
 #include <rtconfig.h>
 
 //#define RS485_USING_TEST
+//#define RS485_USING_SAMPLE_SLAVE
+//#define RS485_USING_SAMPLE_MASTER
 
 #define RS485_BYTE_TMO_MIN      1
 #define RS485_BYTE_TMO_MAX      15

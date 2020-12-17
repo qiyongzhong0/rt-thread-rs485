@@ -5,13 +5,14 @@
  * Date           Author            Notes
  * 2020-06-08     qiyongzhong       first version
  * 2020-12-14     qiyongzhong       fix bug and release v1.0
+ * 2020-12-17     qiyongzhong       fix log tag
  */
 
 #include <rtthread.h>
 #include <rtdevice.h>
 #include <rs485.h>
 
-#define DBG_TAG "drv.rs485"
+#define DBG_TAG "rs485"
 #define DBG_LVL DBG_INFO
 #include <rtdbg.h>
 
