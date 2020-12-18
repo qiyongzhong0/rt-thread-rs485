@@ -4,6 +4,7 @@
  * Change Logs:
  * Date           Author            Notes
  * 2020-12-17     qiyongzhong       first version
+ * 2020-12-18     qiyongzhong       fix to rs485_send_then_recv
  */
     
 #include <rtthread.h>
@@ -62,16 +63,10 @@ static void rs485_sample_master(void *args)
     while(1)
     {
         int len = strlen(read_cmd);
-        if (rs485_send(hinst, read_cmd, len) < 0)
-        {
-            LOG_E("rs485 send datas error.");
-            break;
-        }
-        
-        len = rs485_recv(hinst, buf, sizeof(buf));
+        len = rs485_send_then_recv(hinst, (void *)read_cmd, len, buf, sizeof(buf));
         if (len < 0)
         {
-            LOG_E("rs485 recv datas error.");
+            LOG_E("rs485 send datas error.");
             break;
         }
         

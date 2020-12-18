@@ -89,7 +89,7 @@ rs485 package 遵循 LGPLv2.1 许可，详见 `LICENSE` 文件。
 - 返回 ：>=0--接收到的数据长度，<0--错误
 
 #### int rs485_send(rs485_inst_t * hinst, void *buf, int size);
-- 功能 ：从rs485接收数据
+- 功能 ：向rs485发送数据
 - 参数 ：hinst--rs485实例指针
 - 参数 ：buf--发送数据缓冲区指针
 - 参数 ：size--发送数据长度
@@ -99,6 +99,15 @@ rs485 package 遵循 LGPLv2.1 许可，详见 `LICENSE` 文件。
 - 功能 ：中断rs485接收等待
 - 参数 ：hinst--rs485实例指针
 - 返回 ：0--成功，其它--错误
+
+#### int rs485_send_then_recv(rs485_inst_t * hinst, void *send_buf, int send_len, void *recv_buf, int recv_size);
+- 功能 ：先向rs485发送命令数据，然后从rs485接收响应数据，在多线程使用同一rs485时，可不受打扰地完成发送命令接收响应功能
+- 参数 ：hinst--rs485实例指针
+- 参数 ：send_buf--发送数据缓冲区指针
+- 参数 ：send_len--发送数据长度
+- 参数 ：recv_buf--接收数据缓冲区指针
+- 参数 ：recv_size--接收缓冲区尺寸
+- 返回 ：>=0--接收到的数据长度，<0--错误
 
 ### 2.2获取组件
 

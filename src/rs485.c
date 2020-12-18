@@ -6,6 +6,7 @@
  * 2020-06-08     qiyongzhong       first version
  * 2020-12-14     qiyongzhong       fix bug and release v1.0
  * 2020-12-17     qiyongzhong       fix log tag
+ * 2020-12-18     qiyongzhong       add rs485_send_then_recv
  */
 
 #include <rtthread.h>
@@ -72,6 +73,15 @@ static void rs485_mode_set(rs485_inst_t * hinst, int mode)//mode : 0--receive mo
     }
 }
 
+/* 
+ * @brief   create rs485 instance dynamically
+ * @param   serial      - serial device name
+ * @param   baudrate    - serial baud rate
+ * @param   parity      - serial parity mode
+ * @param   pin         - mode contrle pin
+ * @param   level       - send mode level
+ * @retval  instance handle
+ */
 rs485_inst_t * rs485_create(const char *name, int baudrate, int parity, int pin, int level)
 {
     rs485_inst_t *hinst;
@@ -128,9 +138,14 @@ rs485_inst_t * rs485_create(const char *name, int baudrate, int parity, int pin,
     return(hinst);
 }
 
+/* 
+ * @brief   destory rs485 instance created dynamically
+ * @param   hinst       - instance handle
+ * @retval  0 - success, other - error
+ */
 int rs485_destory(rs485_inst_t * hinst)
 {
-    if (hinst == NULL)
+    if (hinst == RT_NULL)
     {
         LOG_E("rs485 destory fail. hinst is NULL.");
         return(-RT_ERROR);
@@ -141,13 +156,13 @@ int rs485_destory(rs485_inst_t * hinst)
     if (hinst->lock)
     {
         rt_mutex_delete(hinst->lock);
-        hinst->lock = NULL;
+        hinst->lock = RT_NULL;
     }
 
     if (hinst->evt)
     {
         rt_event_delete(hinst->evt);
-        hinst->evt = NULL;
+        hinst->evt = RT_NULL;
     }
     
     rt_free(hinst);
@@ -157,11 +172,20 @@ int rs485_destory(rs485_inst_t * hinst)
     return(RT_EOK);
 }
 
+/* 
+ * @brief   config rs485 params 
+ * @param   hinst       - instance handle
+ * @param   baudrate    - baudrate of communication
+ * @param   databits    - data bits, 5~8
+ * @param   parity      - parity bit, 0~2, 0 - none, 1 - odd, 2 - even
+ * @param   stopbits    - stop bits, 0~1, 0 - 1 stop bit, 1 - 2 stop bits
+ * @retval  0 - success, other - error
+ */
 int rs485_config(rs485_inst_t * hinst, int baudrate, int databits, int parity, int stopbits)
 {
     struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
 
-    if (hinst == NULL)
+    if (hinst == RT_NULL)
     {
         LOG_E("rs485 config fail. hinst is NULL.");
         return(-RT_ERROR);
@@ -176,9 +200,15 @@ int rs485_config(rs485_inst_t * hinst, int baudrate, int databits, int parity, i
     return(RT_EOK);
 }
 
+/* 
+ * @brief   set wait datas timeout for receiving 
+ * @param   hinst       - instance handle
+ * @param   tmo_ms      - receive wait timeout, 0--no wait, <0--wait forever, >0--wait timeout, default = 0
+ * @retval  0 - success, other - error
+ */
 int rs485_set_recv_tmo(rs485_inst_t * hinst, int tmo_ms)
 {
-    if (hinst == NULL)
+    if (hinst == RT_NULL)
     {
         LOG_E("rs485 set recv timeout fail. hinst is NULL.");
         return(-RT_ERROR);
@@ -190,10 +220,16 @@ int rs485_set_recv_tmo(rs485_inst_t * hinst, int tmo_ms)
 
     return(RT_EOK);
 }
-
+ 
+/* 
+ * @brief   set byte interval timeout for receiving
+ * @param   hinst       - instance handle
+ * @param   tmo_ms      - byte interval timeout, default is calculated from baudrate
+ * @retval  0 - success, other - error
+ */
 int rs485_set_byte_tmo(rs485_inst_t * hinst, int tmo_ms)
 {
-    if (hinst == NULL)
+    if (hinst == RT_NULL)
     {
         LOG_E("rs485 set byte timeout fail. hinst is NULL.");
         return(-RT_ERROR);
@@ -215,9 +251,14 @@ int rs485_set_byte_tmo(rs485_inst_t * hinst, int tmo_ms)
     return(RT_EOK);
 }
 
+/* 
+ * @brief   open rs485 connect
+ * @param   hinst       - instance handle
+ * @retval  0 - success, other - error
+ */
 int rs485_connect(rs485_inst_t * hinst)
 {
-    if (hinst == NULL)
+    if (hinst == RT_NULL)
     {
         LOG_E("rs485 connect fail. hinst is NULL.");
         return(-RT_ERROR);
@@ -258,7 +299,7 @@ int rs485_connect(rs485_inst_t * hinst)
  */
 int rs485_disconn(rs485_inst_t * hinst)
 {
-    if (hinst == NULL)
+    if (hinst == RT_NULL)
     {
         LOG_E("rs485 disconnect fail. hinst is NULL.");
         return(-RT_ERROR);
@@ -274,7 +315,7 @@ int rs485_disconn(rs485_inst_t * hinst)
 
     if (hinst->serial)
     {
-        hinst->serial->rx_indicate = NULL;
+        hinst->serial->rx_indicate = RT_NULL;
         rt_device_close(hinst->serial);
     }
     
@@ -304,22 +345,21 @@ int rs485_recv(rs485_inst_t * hinst, void *buf, int size)
     int recv_len = 0;
     rt_uint32_t recved = 0;
     
-    if (hinst == NULL || buf == NULL || size == 0)
+    if (hinst == RT_NULL || buf == RT_NULL || size == 0)
     {
         LOG_E("rs485 receive fail. param error.");
+        return(-RT_ERROR);
+    }
+    
+    if (hinst->status == 0)
+    {
+        LOG_E("rs485 receive fail. it is not connected.");
         return(-RT_ERROR);
     }
     
     if (rt_mutex_take(hinst->lock, RT_WAITING_FOREVER) != RT_EOK)
     {
         LOG_E("rs485 receive fail. it is destoried.");
-        return(-RT_ERROR);
-    }
-    
-    if (hinst->status == 0)
-    {
-        rt_mutex_release(hinst->lock);
-        LOG_E("rs485 receive fail. it is not connected.");
         return(-RT_ERROR);
     }
     
@@ -332,10 +372,11 @@ int rs485_recv(rs485_inst_t * hinst, void *buf, int size)
             size -= len;
             continue;
         }
-        rt_event_control(hinst->evt, RT_IPC_CMD_RESET, NULL);
+        rt_event_control(hinst->evt, RT_IPC_CMD_RESET, RT_NULL);
         if (recv_len)
         {
-            if (rt_event_recv(hinst->evt, RS485_EVT_RX_IND, RT_EVENT_FLAG_OR|RT_EVENT_FLAG_CLEAR, hinst->byte_tmo, &recved) != RT_EOK)
+            if (rt_event_recv(hinst->evt, RS485_EVT_RX_IND, 
+                    (RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR), hinst->byte_tmo, &recved) != RT_EOK)
             {
                 break;
             }
@@ -365,29 +406,28 @@ int rs485_recv(rs485_inst_t * hinst, void *buf, int size)
  * @brief   send datas to rs485
  * @param   hinst       - instance handle
  * @param   buf         - buffer addr
- * @param   size        - maximum length of received datas
+ * @param   size        - length of send datas
  * @retval  >=0 - length of sent datas, <0 - error
  */
 int rs485_send(rs485_inst_t * hinst, void *buf, int size)
 {
     int send_len = 0;
     
-    if (hinst == NULL || buf == NULL || size == 0)
+    if (hinst == RT_NULL || buf == RT_NULL || size == 0)
     {
         LOG_E("rs485 send fail. param is error.");
+        return(-RT_ERROR);
+    }
+
+    if (hinst->status == 0)
+    {
+        LOG_E("rs485 send fail. it is not connected.");
         return(-RT_ERROR);
     }
     
     if (rt_mutex_take(hinst->lock, RT_WAITING_FOREVER) != RT_EOK)
     {
         LOG_E("rs485 send fail. it is destoried.");
-        return(-RT_ERROR);
-    }
-
-    if (hinst->status == 0)
-    {
-        rt_mutex_release(hinst->lock);
-        LOG_E("rs485 send fail. it is not connected.");
         return(-RT_ERROR);
     }
 
@@ -409,7 +449,7 @@ int rs485_send(rs485_inst_t * hinst, void *buf, int size)
  */
 int rs485_break_recv(rs485_inst_t * hinst)
 {
-    if ((hinst == NULL) || (hinst->evt == NULL))
+    if ((hinst == RT_NULL) || (hinst->evt == RT_NULL))
     {
         return(-RT_ERROR);
     }
@@ -417,5 +457,81 @@ int rs485_break_recv(rs485_inst_t * hinst)
     rt_event_send(hinst->evt, RS485_EVT_RX_BREAK);
     
     return (RT_EOK);
+}
+
+/* 
+ * @brief   send data to rs485 and then receive response data from rs485
+ * @param   hinst       - instance handle
+ * @param   send_buf    - send buffer addr
+ * @param   send_len    - length of send datas
+ * @param   recv_buf    - recv buffer addr
+ * @param   recv_size   - maximum length of received datas
+ * @retval  >=0 - length of received datas, <0 - error
+ */
+int rs485_send_then_recv(rs485_inst_t * hinst, void *send_buf, int send_len, void *recv_buf, int recv_size)
+{
+    int recv_len = 0;
+    rt_uint32_t recved = 0;
+    
+    if (hinst == RT_NULL || send_buf == RT_NULL || send_len == 0 || recv_buf == RT_NULL || recv_size == 0)
+    {
+        LOG_E("rs485 send then recv fail. param is error.");
+        return(-RT_ERROR);
+    }
+
+    if (hinst->status == 0)
+    {
+        LOG_E("rs485 send_then_recv fail. it is not connected.");
+        return(-RT_ERROR);
+    }
+
+    rs485_break_recv(hinst);
+    if (rt_mutex_take(hinst->lock, RT_WAITING_FOREVER) != RT_EOK)
+    {
+        LOG_E("rs485 send_then_recv fail. it is destoried.");
+        return(-RT_ERROR);
+    }
+
+    rs485_mode_set(hinst, 1);//set to send mode
+    send_len = rt_device_write(hinst->serial, 0, send_buf, send_len);
+    rs485_mode_set(hinst, 0);//set to receive mode
+    if (send_len < 0)
+    {
+        rt_mutex_release(hinst->lock);
+        LOG_E("rs485 send_then_recv fail. send datas error.");
+        return(-RT_ERROR);
+    }
+
+    while(recv_size)
+    {
+        int len = rt_device_read(hinst->serial, 0, (char *)recv_buf + recv_len, recv_size);
+        if (len)
+        {
+            recv_len += len;
+            recv_size -= len;
+            continue;
+        }
+        rt_event_control(hinst->evt, RT_IPC_CMD_RESET, RT_NULL);
+        if (recv_len)
+        {
+            if (rt_event_recv(hinst->evt, RS485_EVT_RX_IND, 
+                    (RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR), hinst->byte_tmo, &recved) != RT_EOK)
+            {
+                break;
+            }
+        }
+        else
+        {
+            if (rt_event_recv(hinst->evt, RS485_EVT_RX_IND, 
+                    (RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR), hinst->timeout, &recved) != RT_EOK)
+            {
+                break;
+            }
+        }
+    }
+    
+    rt_mutex_release(hinst->lock);
+    
+    return(recv_len);
 }
 

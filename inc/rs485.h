@@ -5,6 +5,7 @@
  * Date           Author            Notes
  * 2020-06-08     qiyongzhong       first version
  * 2020-12-17     qiyongzhong       add sample
+ * 2020-12-18     qiyongzhong       add rs485_send_then_recv
  */
 
 #ifndef __DRV_RS485_H__
@@ -104,6 +105,17 @@ int rs485_send(rs485_inst_t * hinst, void *buf, int size);
  * @retval  0 - success, other - error
  */
 int rs485_break_recv(rs485_inst_t * hinst);
+
+/* 
+ * @brief   send data to rs485 and then receive response data from rs485
+ * @param   hinst       - instance handle
+ * @param   send_buf    - send buffer addr
+ * @param   send_len    - length of send datas
+ * @param   recv_buf    - recv buffer addr
+ * @param   recv_size   - maximum length of received datas
+ * @retval  >=0 - length of received datas, <0 - error
+ */
+int rs485_send_then_recv(rs485_inst_t * hinst, void *send_buf, int send_len, void *recv_buf, int recv_size);
 
 #endif
 
