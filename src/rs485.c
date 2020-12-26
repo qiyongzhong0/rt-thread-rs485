@@ -131,7 +131,7 @@ rs485_inst_t * rs485_create(const char *name, int baudrate, int parity, int pin,
     hinst->timeout = 0;
     hinst->byte_tmo = rs485_cal_byte_tmo(baudrate);
     
-    rs485_config(hinst, baudrate, 8, parity, 1);
+    rs485_config(hinst, baudrate, (parity?9:8), parity, 1);
 
     LOG_D("rs485 create success.");
 
@@ -391,7 +391,7 @@ int rs485_recv(rs485_inst_t * hinst, void *buf, int size)
             if ((recved & RS485_EVT_RX_BREAK) != 0)
             {
                 rt_mutex_release(hinst->lock);
-                rt_thread_delay(1);
+                rt_thread_delay(2);
                 return(0);
             }
         }
@@ -485,7 +485,6 @@ int rs485_send_then_recv(rs485_inst_t * hinst, void *send_buf, int send_len, voi
         return(-RT_ERROR);
     }
 
-    rs485_break_recv(hinst);
     if (rt_mutex_take(hinst->lock, RT_WAITING_FOREVER) != RT_EOK)
     {
         LOG_E("rs485 send_then_recv fail. it is destoried.");
