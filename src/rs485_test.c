@@ -37,7 +37,7 @@
 #endif
 
 #ifndef RS485_TEST_BUF_SIZE
-#define RS485_TEST_BUF_SIZE     256             //default test buffer size
+#define RS485_TEST_BUF_SIZE     1024            //default test buffer size
 #endif
 
 #ifndef RS485_TEST_RECV_TMO
@@ -196,6 +196,10 @@ static void rs485_test(int argc, char **argv)
         if (argc >= 3)
         {
             size = atoi(argv[2]);
+            if (size > RS485_TEST_BUF_SIZE)
+            {
+                size = RS485_TEST_BUF_SIZE;
+            }
         }
         rt_kprintf("rs485 start receiving, max length : %d .\n", size);
         len = rs485_recv(test_hinst, test_buf, size);
@@ -225,6 +229,10 @@ static void rs485_test(int argc, char **argv)
         if (argc >= 3)
         {
             size = atoi(argv[2]);
+            if (size > RS485_TEST_BUF_SIZE)
+            {
+                size = RS485_TEST_BUF_SIZE;
+            }
         }
         for (int i=0; i<size; i++)
         {
