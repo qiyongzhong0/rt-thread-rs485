@@ -90,13 +90,13 @@ rs485_inst_t * rs485_create(const char *name, int baudrate, int parity, int pin,
     dev = rt_device_find(name);
     if (dev == RT_NULL)
     {
-        LOG_E("rs485 instance initiliaze error, the serial device no found.");
+        LOG_E("rs485 instance initiliaze error, the serial device(%s) no found.", name);
         return(RT_NULL);
     }
     
     if (dev->type != RT_Device_Class_Char)
     {
-        LOG_E("rs485 instance initiliaze error, the serial device type is not char.");
+        LOG_E("rs485 instance initiliaze error, the serial device(%s) type is not char.", name);
         return(RT_NULL);
     }
     
