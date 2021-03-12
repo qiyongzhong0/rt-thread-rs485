@@ -191,6 +191,8 @@ int rs485_config(rs485_inst_t * hinst, int baudrate, int databits, int parity, i
         return(-RT_ERROR);
     }
 
+    hinst->byte_tmo = rs485_cal_byte_tmo(baudrate);
+
     config.baud_rate = baudrate;
     config.data_bits = databits;
     config.parity = parity;
