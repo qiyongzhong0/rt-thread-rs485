@@ -9,7 +9,7 @@
  */
 
 #include <rtthread.h>
-#include <rtdevice.h>
+#include <drv_common.h>
 #include <rs485.h>
 #include <stdlib.h>
 #include <string.h>
@@ -143,7 +143,6 @@ static void rs485_test(int argc, char **argv)
             tmo_ms = atoi(argv[2]);
         }
         rs485_set_recv_tmo(test_hinst, tmo_ms);
-        test_hinst = NULL;
         return;
     }
     
@@ -155,7 +154,6 @@ static void rs485_test(int argc, char **argv)
             tmo_ms = atoi(argv[2]);
         }
         rs485_set_byte_tmo(test_hinst, tmo_ms);
-        test_hinst = NULL;
         return;
     }
     
