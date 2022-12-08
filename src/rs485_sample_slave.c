@@ -8,7 +8,6 @@
     
 #include <rtthread.h>
 #include <rtdevice.h>
-#include <drv_common.h>
 #include <rs485.h>
 
 #define DBG_TAG "rs485.sample.slave"
