@@ -9,7 +9,6 @@
     
 #include <rtthread.h>
 #include <rtdevice.h>
-#include <drv_common.h>
 #include <rs485.h>
 #include <string.h>
 
