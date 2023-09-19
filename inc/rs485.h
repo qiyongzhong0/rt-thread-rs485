@@ -19,6 +19,7 @@
 
 #define RS485_BYTE_TMO_MIN      2
 #define RS485_BYTE_TMO_MAX      200
+#define RS485_SW_DLY_US         10
 
 typedef struct rs485_inst rs485_inst_t;
 

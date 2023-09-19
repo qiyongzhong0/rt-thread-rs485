@@ -7,10 +7,12 @@
  * 2020-12-14     qiyongzhong       fix bug and release v1.0
  * 2020-12-17     qiyongzhong       fix log tag
  * 2020-12-18     qiyongzhong       add rs485_send_then_recv
+ * 2023-09-19     qiyongzhong       add switch delay
  */
 
 #include <rtthread.h>
 #include <rtdevice.h>
+#include <rthw.h>
 #include <rs485.h>
 
 #define DBG_TAG "rs485"
@@ -71,6 +73,10 @@ static void rs485_mode_set(rs485_inst_t * hinst, int mode)//mode : 0--receive mo
     {
         rt_pin_write(hinst->pin, ! hinst->level);
     }
+
+    #if (RS485_SW_DLY_US > 0)
+    rt_hw_us_delay(RS485_SW_DLY_US);
+    #endif
 }
 
 /* 
