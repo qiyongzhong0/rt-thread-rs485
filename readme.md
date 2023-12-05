@@ -132,4 +132,5 @@ rs485 package 遵循 LGPLv2.1 许可，详见 `LICENSE` 文件。
 
 * 维护：qiyongzhong
 * 主页：https://github.com/qiyongzhong0/rt-thread-rs485
+* 主页：https://gitee.com/qiyongzhong0/rt-thread-rs485
 * 邮箱：917768104@qq.com
