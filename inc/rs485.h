@@ -12,7 +12,10 @@
 #define __DRV_RS485_H__
 
 #include <rtconfig.h>
-
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 //#define RS485_USING_TEST
 //#define RS485_USING_SAMPLE_SLAVE
 //#define RS485_USING_SAMPLE_MASTER
@@ -118,5 +121,8 @@ int rs485_break_recv(rs485_inst_t * hinst);
  */
 int rs485_send_then_recv(rs485_inst_t * hinst, void *send_buf, int send_len, void *recv_buf, int recv_size);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 
